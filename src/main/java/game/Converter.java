@@ -20,9 +20,9 @@ public class Converter {
 
     private static String file;
 
-    public static Converter setFile(String file) {
+    public static Converter setFile(String file) throws FileNotFoundException {
         if (file == null || file.isEmpty())
-            System.out.println("File can not be null or empty");
+            throw new FileNotFoundException(file);
         Converter.file = file;
         return instance;
     }
@@ -33,41 +33,28 @@ public class Converter {
             File f = new File(file);
             if (f.exists()) {
                 BufferedReader reader;
-
                 reader = new BufferedReader(new FileReader(f));
                 String line = reader.readLine();
                 while (line != null) {
-                    //  System.out.println(line);
-
                     List<Item> itemsList = createItemList(line);
                     items.add(itemsList);
-                    // read next line
                     line = reader.readLine();
                 }
                 reader.close();
                 if (typeRep == Rep.JSON) {
-
                     ObjectMapper obj = new ObjectMapper();
-
-
                     try {
+                        obj.writerWithDefaultPrettyPrinter().writeValue(new File(file.replace(".txt",".json")),
+                                items);
 
-                        // get Oraganisation object as a json string
-                        obj.writerWithDefaultPrettyPrinter().writeValue(new File(file.replace(".txt",".json")), items);
-
-                        // Displaying JSON String
-                        //  System.out.println(jsonStr);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 } else if (typeRep == Rep.XML) {
-
                     XmlMapper xmlMapper = new XmlMapper();
-                    String xml = xmlMapper.writeValueAsString(items);
-                    System.out.println(xml);
+                   xmlMapper.writerWithDefaultPrettyPrinter().writeValue(new FileOutputStream(file.replace(".txt",".XML")),items);
+
                 }
-
-
             } else {
                 throw new FileNotFoundException(file);
             }
@@ -80,19 +67,15 @@ public class Converter {
     }
 
     private List<Item> createItemList(String line) {
-
         List<Item> ret = new ArrayList<>();
-
         line = line.substring(1, line.length() - 1);
         StringTokenizer tokenizer = new StringTokenizer(line, "\"]");
         while (tokenizer.hasNext()) {
             String part = tokenizer.nextToken();
             StringTokenizer tokenizer2 = new StringTokenizer(part, ",");
-            Item item = new Item(tokenizer2.nextToken().toString().replace("\"", ""), tokenizer2.nextToken().replace("\"", "").toString(), tokenizer2.nextToken().replace("\"", "").toString());
+            Item item = new Item(tokenizer2.nextToken().replace("\"", ""), tokenizer2.nextToken().replace("\"", ""), tokenizer2.nextToken().replace("\"", ""));
             ret.add(item);
         }
-
-
         return ret;
     }
 
