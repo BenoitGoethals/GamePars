@@ -18,6 +18,8 @@ public class Converter {
 
     private static Converter instance = new Converter();
 
+    private Convert convert;
+
     private static String file;
 
     public static Converter setFile(String file) throws FileNotFoundException {
@@ -32,8 +34,7 @@ public class Converter {
         try {
             File f = new File(file);
             if (f.exists()) {
-                BufferedReader reader;
-                reader = new BufferedReader(new FileReader(f));
+                BufferedReader reader = new BufferedReader(new FileReader(f));
                 String line = reader.readLine();
                 while (line != null) {
                     List<Item> itemsList = createItemList(line);
@@ -41,20 +42,9 @@ public class Converter {
                     line = reader.readLine();
                 }
                 reader.close();
-                if (typeRep == Rep.JSON) {
-                    ObjectMapper obj = new ObjectMapper();
-                    try {
-                        obj.writerWithDefaultPrettyPrinter().writeValue(new File(file.replace(".txt",".json")),
-                                items);
+                convert=typeRep.getConvert();
+                convert.TransForm(items,file);
 
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                } else if (typeRep == Rep.XML) {
-                    XmlMapper xmlMapper = new XmlMapper();
-                   xmlMapper.writerWithDefaultPrettyPrinter().writeValue(new FileOutputStream(file.replace(".txt",".XML")),items);
-
-                }
             } else {
                 throw new FileNotFoundException(file);
             }
